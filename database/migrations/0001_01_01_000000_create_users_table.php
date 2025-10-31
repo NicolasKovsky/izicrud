@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('permissao_id')->default(99)->index();
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
@@ -20,6 +21,44 @@ return new class extends Migration
             $table->rememberToken();
             $table->timestamps();
         });
+
+        // Insert a default user
+        DB::table('users')->insert([
+            'name' => 'Admin Developer',
+            'permissao_id' => 1,
+            'email' => 'adm@adm.com',
+            'password' => bcrypt('adm@adm.com'), // Use bcrypt to hash the password
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        // Insert a default user
+        DB::table('users')->insert([
+            'name' => 'Alpha Developer',
+            'permissao_id' => 2,
+            'email' => 'admin@admin.com',
+            'password' => bcrypt('admin@admin.com'), // Use bcrypt to hash the password
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        // Insert a default user
+        DB::table('users')->insert([
+            'name' => 'Delta Developer',
+            'permissao_id' => 3,
+            'email' => 'dev@dev.com',
+            'password' => bcrypt('dev@dev.com'), // Use bcrypt to hash the password
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        // Insert a default user
+        DB::table('users')->insert([
+            'name' => 'Visita Developer',
+            'permissao_id' => 99,
+            'email' => 'vz@vz.com',
+            'password' => bcrypt('vz@vz.com'), // Use bcrypt to hash the password
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

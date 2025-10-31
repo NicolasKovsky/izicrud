@@ -252,14 +252,16 @@ EOT;
             default => "''",
         }, $fields));
 
-        $dropdownOptions = implode("\n", array_map(
-            fn($f) => str_starts_with($f['name'], 'id_') ? "const {$f['name']}Options = props.usuarios.map(usuario => ({ value: usuario.id, label: usuario.name })); // TODO: Adjust data source as needed" : '',
-            $fields
-        ));
+        // Refatoração 1: Remover a lógica hardcoded de dropdowns
+        // A lógica de props de dropdowns já é gerada no Controller,
+        // e o nome da prop segue o padrão 'id_campoOptions'.
+        $dropdownOptions = ''; // Não é mais necessário gerar esta string
 
         $formInputs = implode("\n                ", array_map(
             fn($f) => match (true) {
-                str_starts_with($f['name'], 'id_') => "<div>\n                    <Label for=\"{$f['name']}\">{$f['label']}</Label>\n                    <Select v-model=\"form.{$f['name']}\">\n                        <SelectTrigger class=\"w-full\">\n                            <SelectValue placeholder=\"Selecione {$f['label']}\" />\n                        </SelectTrigger>\n                        <SelectContent>\n                            <SelectItem v-for=\"option in {$f['name']}Options\" :key=\"option.value\" :value=\"option.value\">\n                                {{ option.label }}\n                            </SelectItem>\n                        </SelectContent>\n                    </Select>\n                </div>",
+                // Adição da lógica para campos de chave estrangeira (id_)
+                $f['is_foreign'] => $this->generateSelectComponent($f),
+
                 $f['type'] === 'boolean' => "<div class=\"flex items-center space-x-2\">\n                    <Checkbox id=\"{$f['name']}\" v-model=\"form.{$f['name']}\" />\n                    <Label for=\"{$f['name']}\">{$f['label']}</Label>\n                </div>",
                 $f['type'] === 'text' => "<div>\n                    <Label for=\"{$f['name']}\">{$f['label']}</Label>\n                    <Textarea id=\"{$f['name']}\" v-model=\"form.{$f['name']}\" placeholder=\"Digite {$f['label']}\" rows=\"4\" />\n                </div>",
                 $f['type'] === 'date' || $f['type'] === 'datetime' || $f['type'] === 'timestamp' => "<div>\n                    <Label for=\"{$f['name']}\">{$f['label']}</Label>\n                    <Input id=\"{$f['name']}\" v-model=\"form.{$f['name']}\" type=\"" . ($f['type'] === 'date' ? 'date' : 'datetime-local') . "\" />\n                </div>",
@@ -276,6 +278,35 @@ EOT;
         ));
 
         $createStub = File::get(base_path('stubs/crud.create.vue.stub'));
+
+        $selectImports = "import {\n" .
+            "  Select,\n" .
+            "  SelectTrigger,\n" .
+            "  SelectValue,\n" .
+            "  SelectContent,\n" .
+            "  SelectItem\n" .
+            "} from '@/components/ui/select';\n";
+
+        // Refatoração 2: Adicionar as props de dropdowns ao defineProps
+        $dropdownProps = implode("\n    ", array_map(
+            fn($f) => $f['is_foreign'] ? "{$f['name']}Options: { value: number; label: string }[];" : '',
+            $fields
+        ));
+
+        $createStub = str_replace(
+            '<script setup>',
+            "<script setup>\n{$selectImports}\n\nconst props = defineProps<{\n    item?: Record<string, any>;\n    sidebarNavItems: { title: string; href: string }[];\n    // TODO: Ajustar a prop 'usuarios' para ser dinâmica conforme o model relacionado
+    usuarios: { id: number; name: string }[];\n    {$dropdownProps}\n}>();\n\n", // Removido $dropdownOptions
+            $createStub
+        );
+
+        $createStub = str_replace(
+            ['{{modelPluralTitle}}', '{{routePrefix}}', '{{modelPluralLower}}', '{{modelTitle}}', '{{modelLower}}', '{{propFields}}', '{{formFields}}', '{{formInputs}}'],
+            [$modelPluralTitle, $routePrefix, $modelPluralLower, $modelTitle, $modelLower, $propFields, $formFields, $formInputs],
+            $createStub
+        );
+
+        File::put("{$viewPath}/create.vue", $createStub);
 
         $selectImports = "import {\n" .
             "  Select,\n" .
@@ -323,6 +354,25 @@ EOT;
         );
 
         File::put("{$viewPath}/index.vue", $indexStub);
+    }
+
+    /**
+     * Gera o componente Select (dropdown) para campos de chave estrangeira.
+     * @param array $field
+     * @return string
+     */
+    private function generateSelectComponent(array $field): string
+    {
+        $propName = "{$field['name']}Options";
+        $label = $field['label'];
+        $fieldName = $field['name'];
+
+        return <<<VUE
+<div>
+    <Label for="{$fieldName}">{$label}</Label>
+    <Select v-model="form.{$fieldName}" :options="props.{$propName}" />
+</div>
+VUE;
     }
 
     protected function appendControllerImport($controller)
@@ -402,21 +452,29 @@ EOT;
             $stub = File::get(base_path('stubs/crud.migration.stub'));
 
             $columns = implode("\n            ", array_map(function ($f) {
-                $column = "\$table->" . match (true) {
-                    $f['is_foreign'] => 'bigInteger', // Campos que começam com id_ são bigInteger
-                    $f['type'] === 'email' => 'string', // Map email to string
-                    $f['type'] === 'moeda' => 'float',  // Map moeda to float
-                    $f['type'] === 'file' => 'string',  // Map file to string
-                    $f['type'] === 'files' => 'json',   // Map files to json
-                    default => $f['type']
-                } . "('{$f['name']}');";
-
+                // Se for chave estrangeira, usa a sintaxe foreignId()->constrained()
                 if ($f['is_foreign']) {
                     $relatedTable = strtolower(Str::plural($f['related_model']));
-                    $column .= "\n            \$table->foreign('{$f['name']}')->references('id')->on('{$relatedTable}')->onDelete('cascade');";
+                    // foreignId() assume que o nome da coluna é 'nome_do_campo'
+                    // constrained() assume que a tabela relacionada é o plural do nome do modelo (se não for passado)
+                    // Usamos constrained($relatedTable) para garantir a tabela correta
+                    // Usamos cascadeOnDelete() para replicar a lógica onDelete('cascade')
+                    return "\$table->foreignId('{$f['name']}')"
+                        . "\n                ->constrained('{$relatedTable}')"
+                        . "\n                ->cascadeOnDelete();";
                 }
 
-                return $column;
+                // Para os demais campos, usa o mapeamento de tipos
+                $columnType = match (true) {
+                    $f['type'] === 'email' => 'string',
+                    $f['type'] === 'moeda' => 'float', // Sugestão: usar 'decimal' para precisão
+                    $f['type'] === 'file' => 'string',
+                    $f['type'] === 'files' => 'json',
+                    default => $f['type']
+                };
+
+                return "\$table->{$columnType}('{$f['name']}');";
+
             }, $fields));
 
             $columns .= "\n            \$table->boolean('deleted')->default(false);";

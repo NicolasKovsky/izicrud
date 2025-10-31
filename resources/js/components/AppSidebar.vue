@@ -12,30 +12,53 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types';
+// import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
+export type NavItem = {
+    title: string;
+    href: string;
+    icon: any;
+    nivel: number; // Added the 'nivel' property
+};
+
+
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href:  '/dashboard',
         icon: LayoutGrid,
+        nivel: 99,
     },
+
+
+// Novos Itens do Menu
+
+
+{
+    title: 'Permissoes',
+    href: '/permissoes',
+    icon: LayoutGrid,
+    nivel: 0,
+},
 ];
 
 const footerNavItems: NavItem[] = [
-    {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
+    // {
+    //     title: 'Github Repo',
+    //     href: 'https://github.com/laravel/vue-starter-kit',
+    //     icon: Folder,
+    //     nivel: 99
+    // },
+    // {
+    //     title: 'Documentation',
+    //     href: 'https://laravel.com/docs/starter-kits#vue',
+    //     icon: BookOpen,
+    //     nivel: 99
+    // },
+
 ];
 </script>
 
