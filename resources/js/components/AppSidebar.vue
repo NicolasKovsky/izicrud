@@ -37,12 +37,7 @@ const mainNavItems: NavItem[] = [
 // Novos Itens do Menu
 
 
-{
-    title: 'Permissoes',
-    href: '/permissoes',
-    icon: LayoutGrid,
-    nivel: 0,
-},
+
 ];
 
 const footerNavItems: NavItem[] = [
@@ -58,6 +53,12 @@ const footerNavItems: NavItem[] = [
     //     icon: BookOpen,
     //     nivel: 99
     // },
+    {
+        title: 'Permissoes',
+        href: '/permissoes',
+        icon: LayoutGrid,
+        nivel: 0,
+    },
 
 ];
 </script>
