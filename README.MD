@@ -27,7 +27,7 @@ Desenvolvido por **Nicolas Slujalkovsky**, este projeto reflete minha paixão po
 ### Instalação
 1. **Clone o repositório**:
    ```bash
-   git clone https://github.com/nicolas-slujalkovsky/starter-kit-laravel-vue.git
+   git clone https://github.com/NicolasKovsky/izicrud.git
    cd starter-kit-laravel-vue
    ```
 2. **Instale as dependências do PHP**:
