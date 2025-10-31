@@ -41,12 +41,12 @@ const mainNavItems: NavItem[] = [
 ];
 
 const footerNavItems: NavItem[] = [
-    // {
-    //     title: 'Github Repo',
-    //     href: 'https://github.com/laravel/vue-starter-kit',
-    //     icon: Folder,
-    //     nivel: 99
-    // },
+    {
+        title: 'Github Repo',
+        href: 'https://github.com/NicolasKovsky/izicrud',
+        icon: Folder,
+        nivel: 99
+    },
     // {
     //     title: 'Documentation',
     //     href: 'https://laravel.com/docs/starter-kits#vue',
