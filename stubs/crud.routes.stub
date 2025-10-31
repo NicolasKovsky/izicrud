@@ -1,0 +1,12 @@
+Route::group([
+    'middleware' => ['auth', 'verified', 'permissao:99'],
+], function () {
+    Route::controller({{controller}}::class)->group(function () {
+        Route::get('/{{routePrefix}}', 'index')->name('{{routePrefix}}.index');
+        Route::get('/{{routePrefix}}/create', 'create')->name('{{routePrefix}}.create');
+        Route::post('/{{routePrefix}}', 'store')->name('{{routePrefix}}.store');
+        Route::get('/{{routePrefix}}/{{{routePrefix}}}/edit', 'edit')->name('{{routePrefix}}.edit');
+        Route::put('/{{routePrefix}}/{{{routePrefix}}}', 'update')->name('{{routePrefix}}.update');
+        Route::delete('/{{routePrefix}}/{{{routePrefix}}}', 'destroy')->name('{{routePrefix}}.destroy');
+    });
+});

@@ -1,0 +1,78 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\{{model}};
+use Illuminate\Http\Request;
+
+class {{controller}} extends Controller
+{
+    public function index()
+    {
+        $items = {{model}}::where('deleted', 0)->orderBy('id', 'desc')->paginate(9);
+        $allItems = {{model}}::where('deleted', 0)->orderBy('id', 'desc')->get();
+
+        return inertia('{{viewFolder}}/index', [
+            'itens' => $items,
+            'allItens' => $allItems,
+            'totalItensDeletados' => {{model}}::where('deleted', 1)->count(),
+            'sidebarNavItems' => $this->getSidebarNavItems(),
+        ]);
+    }
+
+    public function create()
+    {
+        return inertia('{{viewFolder}}/create', [
+            'sidebarNavItems' => $this->getSidebarNavItems(),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            {{validationRules}}
+        ]);
+
+        {{model}}::create($request->all());
+
+        return redirect()->route('{{routePrefix}}.index')->with('success', '{{modelTitle}} criado com sucesso.');
+    }
+
+    public function edit({{model}} ${{modelLower}})
+    {
+        if (${{modelLower}}->deleted) {
+            return redirect()->route('{{routePrefix}}.index')->with('error', '{{modelTitle}} excluído.');
+        }
+
+        return inertia('{{viewFolder}}/create', [
+            'item' => ${{modelLower}}->toArray(),
+            'sidebarNavItems' => $this->getSidebarNavItems(),
+        ]);
+    }
+
+    public function update(Request $request, {{model}} ${{modelLower}})
+    {
+        $request->validate([
+            {{validationRules}}
+        ]);
+
+        ${{modelLower}}->update($request->all());
+
+        return redirect()->route('{{routePrefix}}.index')->with('success', '{{modelTitle}} atualizado com sucesso.');
+    }
+
+    public function destroy({{model}} ${{modelLower}})
+    {
+        ${{modelLower}}->update(['deleted' => 1]);
+
+        return redirect()->route('{{routePrefix}}.index')->with('success', '{{modelTitle}} excluído com sucesso.');
+    }
+
+    private function getSidebarNavItems(): array
+    {
+        return [
+            ['title' => 'Todos os {{modelPluralTitle}}', 'href' => '/{{routePrefix}}'],
+            ['title' => 'Criar Novo {{modelTitle}}', 'href' => '/{{routePrefix}}/create'],
+        ];
+    }
+}
