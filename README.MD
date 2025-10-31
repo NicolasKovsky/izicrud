@@ -144,7 +144,7 @@ Starter Kit Laravel 12 + Vue - Feito para acelerar seu desenvolvimento!
 
 ## 🤝 Contribuições
 
-Contribuições são bem-vindas! Sinta-se à vontade para abrir *issues* ou enviar *pull requests* no [repositório GitHub](https://github.com/nicolas-slujalkovsky/laravue-izcrud).
+Contribuições são bem-vindas! Sinta-se à vontade para abrir *issues* ou enviar *pull requests* no [repositório GitHub](https://github.com/NicolasKovsky/izicrud).
 
 ---
 
