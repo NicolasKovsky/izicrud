@@ -20,12 +20,9 @@ class {{controller}} extends Controller
         ]);
     }
 
-    public function create()
-    {
-        return inertia('{{viewFolder}}/create', [
-            'sidebarNavItems' => $this->getSidebarNavItems(),
-        ]);
-    }
+
+    {{createMethod}}
+
 
     public function store(Request $request)
     {
@@ -38,17 +35,8 @@ class {{controller}} extends Controller
         return redirect()->route('{{routePrefix}}.index')->with('success', '{{modelTitle}} criado com sucesso.');
     }
 
-    public function edit({{model}} ${{modelLower}})
-    {
-        if (${{modelLower}}->deleted) {
-            return redirect()->route('{{routePrefix}}.index')->with('error', '{{modelTitle}} excluído.');
-        }
+    {{editMethod}}
 
-        return inertia('{{viewFolder}}/create', [
-            'item' => ${{modelLower}}->toArray(),
-            'sidebarNavItems' => $this->getSidebarNavItems(),
-        ]);
-    }
 
     public function update(Request $request, {{model}} ${{modelLower}})
     {

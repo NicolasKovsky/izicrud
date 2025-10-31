@@ -23,6 +23,7 @@ const headerDescription = 'Gerencie seus {{modelPluralLower}} aqui.';
 const props = defineProps<{
     item?: { id: number; {{propFields}} };
     sidebarNavItems: { title: string; href: string }[];
+    {{dropdownProps}}
 }>();
 
 const isEditing = ref(!!props.item);

@@ -195,8 +195,8 @@ EOT;
         {$dropdownData}
 
         return inertia('{$viewFolder}/create', [
+            'sidebarNavItems' => \$this->getSidebarNavItems()
             {$this->generateDropdownProps($fields)}
-            'sidebarNavItems' => \$this->getSidebarNavItems(),
         ]);
     }
 EOT;
@@ -212,8 +212,8 @@ EOT;
 
         return inertia('{$viewFolder}/create', [
             'item' => \${$modelLower}->toArray(),
+            'sidebarNavItems' => \$this->getSidebarNavItems()
             {$this->generateDropdownProps($fields)}
-            'sidebarNavItems' => \$this->getSidebarNavItems(),
         ]);
     }
 EOT;
@@ -229,8 +229,8 @@ EOT;
 
     private function generateDropdownProps($fields)
     {
-        return implode(",\n            ", array_map(
-            fn($f) => $f['is_foreign'] ? "'{$f['name']}Options' => \${$f['name']}Options" : '',
+        return implode("\n            ", array_map(
+            fn($f) => $f['is_foreign'] ? ",'{$f['name']}Options' => \${$f['name']}Options" : '',
             $fields
         ));
     }
@@ -246,7 +246,7 @@ EOT;
             default => 'string',
         }, $fields));
 
-        $formFields = implode(",\n    ", array_map(fn($f) => "{$f['name']}: props.item?.{$f['name']} || " . match ($f['type']) {
+        $formFields = implode(",\n    ", array_map(fn($f) => "{$f['name']}: props.item?.{$f['name']}.toString() || " . match ($f['type']) {
             'boolean' => 'false',
             'integer', 'bigInteger', 'float', 'double', 'decimal' => '0',
             default => "''",
@@ -293,16 +293,16 @@ EOT;
             $fields
         ));
 
-        $createStub = str_replace(
-            '<script setup>',
-            "<script setup>\n{$selectImports}\n\nconst props = defineProps<{\n    item?: Record<string, any>;\n    sidebarNavItems: { title: string; href: string }[];\n    // TODO: Ajustar a prop 'usuarios' para ser dinâmica conforme o model relacionado
-    usuarios: { id: number; name: string }[];\n    {$dropdownProps}\n}>();\n\n", // Removido $dropdownOptions
-            $createStub
-        );
+    //     $createStub = str_replace(
+    //         '<script setup>',
+    //         "<script setup>\n{$selectImports}\n\nconst props = defineProps<{\n    item?: Record<string, any>;\n    sidebarNavItems: { title: string; href: string }[];\n    // TODO: Ajustar a prop 'usuarios' para ser dinâmica conforme o model relacionado
+    // usuarios: { id: number; name: string }[];\n    {$dropdownProps}\n}>();\n\n", // Removido $dropdownOptions
+    //         $createStub
+    //     );
 
         $createStub = str_replace(
-            ['{{modelPluralTitle}}', '{{routePrefix}}', '{{modelPluralLower}}', '{{modelTitle}}', '{{modelLower}}', '{{propFields}}', '{{formFields}}', '{{formInputs}}'],
-            [$modelPluralTitle, $routePrefix, $modelPluralLower, $modelTitle, $modelLower, $propFields, $formFields, $formInputs],
+            ['{{modelPluralTitle}}', '{{routePrefix}}', '{{modelPluralLower}}', '{{modelTitle}}', '{{modelLower}}', '{{propFields}}', '{{formFields}}', '{{formInputs}}', '{{dropdownProps}}'],
+            [$modelPluralTitle, $routePrefix, $modelPluralLower, $modelTitle, $modelLower, $propFields, $formFields, $formInputs, $dropdownProps],
             $createStub
         );
 
@@ -369,8 +369,19 @@ EOT;
 
         return <<<VUE
 <div>
-    <Label for="{$fieldName}">{$label}</Label>
-    <Select v-model="form.{$fieldName}" :options="props.{$propName}" />
+    <div>
+                    <Label for="{$fieldName}">{$label}</Label>
+                    <Select v-model="form.{$fieldName}">
+                        <SelectTrigger class="w-full">
+                            <SelectValue placeholder="Selecione um {$label}" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem v-for="option in (props.{$propName} || [])" :key="option.value" :value="option.value.toString()">
+                                {{ option.label }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
 </div>
 VUE;
     }
